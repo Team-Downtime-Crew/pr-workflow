@@ -18,12 +18,12 @@ pipeline {
     post {
         success {
             script {
-                githubNotify context: 'Jenkins CI', description: 'Build succeeded', status: 'SUCCESS'
+                githubNotify context: 'Jenkins CI', status: 'SUCCESS', description: 'Build passed'
             }
         }
         failure {
             script {
-                githubNotify context: 'Jenkins CI', description: 'Build failed', status: 'FAILURE'
+                githubNotify context: 'Jenkins CI', status: 'FAILURE', description: 'Build failed'
             }
         }
     }
