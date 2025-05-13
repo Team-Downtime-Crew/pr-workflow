@@ -1,55 +1,29 @@
 pipeline {
     agent any
-    
-    triggers {
-        githubPullRequest(
-            events: [
-                opened(),
-                synchronize(),
-                reopened()
-            ]
-        )
-    }
 
     stages {
-        stage('PR Build') {
+        stage('Build') {
             steps {
-                script {
-                    // This will only run for PRs
-                    if (env.CHANGE_ID) {
-                        echo "Building PR #${env.CHANGE_ID}: ${env.CHANGE_TITLE}"
-                        echo "Target branch: ${env.CHANGE_TARGET}"
-                    }
-                }
-                checkout scm
-                sh 'echo "Running build for branch: ${GIT_BRANCH}"'
-                // Add your build/test steps here
+                echo 'Building project...'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Running tests...'
             }
         }
     }
-    
+
     post {
         success {
             script {
-                if (env.CHANGE_ID) {
-                    // Update GitHub PR status
-                    updateGitHubCommitStatus(
-                        name: "Jenkins CI", 
-                        state: "SUCCESS",
-                        context: "jenkins-ci/pr"
-                    )
-                }
+                githubNotify context: 'Jenkins CI', description: 'Build succeeded', status: 'SUCCESS'
             }
         }
         failure {
             script {
-                if (env.CHANGE_ID) {
-                    updateGitHubCommitStatus(
-                        name: "Jenkins CI", 
-                        state: "FAILURE",
-                        context: "jenkins-ci/pr"
-                    )
-                }
+                githubNotify context: 'Jenkins CI', description: 'Build failed', status: 'FAILURE'
             }
         }
     }
