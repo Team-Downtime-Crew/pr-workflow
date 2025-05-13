@@ -1,33 +1,56 @@
 pipeline {
     agent any
     
+    triggers {
+        githubPullRequest(
+            events: [
+                opened(),
+                synchronize(),
+                reopened()
+            ]
+        )
+    }
+
     stages {
-        stage('Build & Test') {
+        stage('PR Build') {
             steps {
-                echo 'Building...'
-                // Add your build commands here
-                // Example: sh 'mvn clean package'
-                
-                echo 'Running Tests...'
-                // Add your test commands here
-            }
-        }
-        stage('Code Quality') {
-            steps {
-                echo 'Running Code Analysis...'
-                // Add code quality checks here
+                script {
+                    // This will only run for PRs
+                    if (env.CHANGE_ID) {
+                        echo "Building PR #${env.CHANGE_ID}: ${env.CHANGE_TITLE}"
+                        echo "Target branch: ${env.CHANGE_TARGET}"
+                    }
+                }
+                checkout scm
+                sh 'echo "Running build for branch: ${GIT_BRANCH}"'
+                // Add your build/test steps here
             }
         }
     }
     
     post {
         success {
-            // This will mark the PR as successful in GitHub
-            updateGitHubCommitStatus name: "Jenkins CI", state: "SUCCESS"
+            script {
+                if (env.CHANGE_ID) {
+                    // Update GitHub PR status
+                    updateGitHubCommitStatus(
+                        name: "Jenkins CI", 
+                        state: "SUCCESS",
+                        context: "jenkins-ci/pr"
+                    )
+                }
+            }
         }
         failure {
-            // This will mark the PR as failed in GitHub
-            updateGitHubCommitStatus name: "Jenkins CI", state: "FAILURE"
+            script {
+                if (env.CHANGE_ID) {
+                    updateGitHubCommitStatus(
+                        name: "Jenkins CI", 
+                        state: "FAILURE",
+                        context: "jenkins-ci/pr"
+                    )
+                }
+            }
         }
     }
 }
