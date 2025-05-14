@@ -1,56 +1,36 @@
 pipeline {
     agent any
-    
-    triggers {
-        githubPullRequest(
-            events: [
-                opened(),
-                synchronize(),
-                reopened()
-            ]
-        )
-    }
-
     stages {
-        stage('PR Build') {
+        stage('Checkout') {
             steps {
-                script {
-                    // This will only run for PRs
-                    if (env.CHANGE_ID) {
-                        echo "Building PR #${env.CHANGE_ID}: ${env.CHANGE_TITLE}"
-                        echo "Target branch: ${env.CHANGE_TARGET}"
-                    }
-                }
                 checkout scm
-                sh 'echo "Running build for branch: ${GIT_BRANCH}"'
-                // Add your build/test steps here
+            }
+        }
+        stage('Lint') {
+            steps {
+                echo "Running code lint checks..."
+                sh 'echo "Pretend linter here"'
+            }
+        }
+        stage('Unit Tests') {
+            steps {
+                echo "Running unit tests..."
+                sh 'echo "Pretend tests running"'
+            }
+        }
+        stage('Build') {
+            steps {
+                echo "Building the application..."
+                sh 'echo "Pretend build here"'
             }
         }
     }
-    
     post {
         success {
-            script {
-                if (env.CHANGE_ID) {
-                    // Update GitHub PR status
-                    updateGitHubCommitStatus(
-                        name: "Jenkins CI", 
-                        state: "SUCCESS",
-                        context: "jenkins-ci/pr"
-                    )
-                }
-            }
+            echo "Jenkins validation PASSED"
         }
         failure {
-            script {
-                if (env.CHANGE_ID) {
-                    updateGitHubCommitStatus(
-                        name: "Jenkins CI", 
-                        state: "FAILURE",
-                        context: "jenkins-ci/pr"
-                    )
-                }
-            }
+            echo "Jenkins validation FAILED"
         }
     }
 }
