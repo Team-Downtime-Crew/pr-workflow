@@ -1,30 +1,36 @@
 pipeline {
     agent any
-
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                echo 'Building project...'
+                checkout scm
             }
         }
-
-        stage('Test') {
+        stage('Lint') {
             steps {
-                echo 'Running tests...'
+                echo "Running code lint checks..."
+                sh 'echo "Pretend linter here"'
+            }
+        }
+        stage('Unit Tests') {
+            steps {
+                echo "Running unit tests..."
+                sh 'echo "Pretend tests running"'
+            }
+        }
+        stage('Build') {
+            steps {
+                echo "Building the application..."
+                sh 'echo "Pretend build here"'
             }
         }
     }
-
     post {
         success {
-            script {
-                githubNotify context: 'Jenkins CI', status: 'SUCCESS', description: 'Build passed'
-            }
+            echo "Jenkins validation PASSED"
         }
         failure {
-            script {
-                githubNotify context: 'Jenkins CI', status: 'FAILURE', description: 'Build failed'
-            }
+            echo "Jenkins validation FAILED"
         }
     }
 }
